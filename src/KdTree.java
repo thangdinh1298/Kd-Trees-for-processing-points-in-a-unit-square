@@ -8,7 +8,6 @@ public class KdTree {
     Comparator<Point2D> xOrder = Point2D.X_ORDER;
     Comparator<Point2D> yOrder = Point2D.Y_ORDER;
     int N;
-    Stack s = new Stack();
     private class Node{
         private boolean isVertical;
         private Point2D p;
@@ -122,22 +121,26 @@ public class KdTree {
         draw(curNode.ru);
     }
     public Iterable<Point2D> range(RectHV rectHV){
+        Stack s = new Stack();
         if (rectHV == null) return null;
-        Point2D point2D = range(rectHV,root);
+        if (root == null) return null;
+        Point2D point2D = range(rectHV,root,s);
         if(point2D != null) s.push(point2D);
         return s;
     }             // all points that are inside the rectangle (or on the boundary)
-    private Point2D range (RectHV rectHV, Node curNode){ // bugged
-        if(curNode == null) return null;
+    private Point2D range (RectHV rectHV, Node curNode, Stack<Point2D> s){ // bugged
         if(curNode.lb != null && curNode.lb.rectHV.intersects(rectHV)){
-            Point2D point2D = range(rectHV,curNode.lb);
+            Point2D point2D = range(rectHV,curNode.lb,s);
             if(point2D != null) s.push(point2D);
         }
         if(curNode.ru != null && curNode.ru.rectHV.intersects(rectHV)){
-            Point2D point2D = range(rectHV,curNode.ru);
+            Point2D point2D = range(rectHV,curNode.ru,s);
             if(point2D != null) s.push(point2D);
         }
-        if(curNode.rectHV.intersects(rectHV)) return curNode.p;
+        if(curNode.rectHV.intersects(rectHV)){
+            if(rectHV.contains(curNode.p))
+            return curNode.p;
+        }
         return null;
     }
 //    public           Point2D nearest(Point2D p){
