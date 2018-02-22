@@ -1,5 +1,6 @@
 import edu.princeton.cs.algs4.*;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 
 
@@ -36,9 +37,10 @@ public class KdTree {
             N++;
             return new Node(p, isVertical, rectHV);
         }
+        if(p.equals(curNode.p)) return curNode; // if the points are equal, return the node
         if(isVertical){
             int cmp = xOrder.compare(curNode.p,p);
-            if(cmp <= 0){ // todo fix equal points
+            if(cmp <= 0){
                 curNode.ru = insert(p, curNode.ru, !curNode.isVertical,
                         new RectHV(curNode.p.x(),rectHV.ymin(),rectHV.xmax(),rectHV.ymax()));
             }
@@ -46,11 +48,11 @@ public class KdTree {
                 curNode.lb = insert(p, curNode.lb, !curNode.isVertical,
                         new RectHV(rectHV.xmin(),rectHV.ymin(),curNode.p.x(),rectHV.ymax()));
             }
-//            return curNode; //remove duplicates
+
         }
         else{
             int cmp = yOrder.compare(curNode.p,p);
-            if(cmp <= 0){// todo: fix equal points
+            if(cmp <= 0){
                 curNode.ru = insert(p, curNode.ru, !curNode.isVertical,
                         new RectHV(rectHV.xmin(),curNode.p.y(),rectHV.xmax(),rectHV.ymax()));
             }
@@ -70,30 +72,25 @@ public class KdTree {
     }            // does the set contain point p?
     private boolean contains(Point2D p, Node curNode){
         if(curNode == null) return false;
-        if(curNode.isVertical){
-            int cmp = xOrder.compare(curNode.p,p);
-            if(cmp < 0){
-                return contains(p,curNode.ru);
-            }
-            else if(cmp > 0){
-                return contains(p,curNode.lb);
-            }
-            else{
-                if(p.equals(curNode.p)) return true;
-                return contains(p,curNode.ru);
-            }
-        }
+        if(curNode.p.equals(p)) return true;
         else{
-            int cmp = yOrder.compare(curNode.p,p);
-            if(cmp < 0){
-                return contains(p,curNode.ru);
-            }
-            else if(cmp > 0){
-                return contains(p,curNode.lb);
+            if(curNode.isVertical){
+                int cmp = xOrder.compare(curNode.p,p);
+                if(cmp <= 0){
+                    return contains(p,curNode.ru);
+                }
+                else {
+                    return contains(p,curNode.lb);
+                }
             }
             else{
-                if(p.equals(curNode.p)) return true;
-                return contains(p,curNode.ru);
+                int cmp = yOrder.compare(curNode.p,p);
+                if(cmp <= 0){
+                    return contains(p,curNode.ru);
+                }
+                else {
+                    return contains(p,curNode.lb);
+                }
             }
         }
     }
@@ -115,8 +112,6 @@ public class KdTree {
         StdDraw.setPenRadius(0.015);
         StdDraw.setPenColor(StdDraw.BLACK);
         StdDraw.point(curNode.p.x(),curNode.p.y());
-        StdDraw.setPenRadius(0.01);
-        curNode.rectHV.draw();
         draw(curNode.lb);
         draw(curNode.ru);
     }
@@ -149,12 +144,17 @@ public class KdTree {
 
     public static void main(String[] args)  {
         KdTree tree2d = new KdTree();
+        ArrayList<Point2D> arrayList = new ArrayList<>();
         In in  = new In(args[0]);
         while(!in.isEmpty()){
             double x = in.readDouble();
             double y = in.readDouble();
             tree2d.insert(new Point2D(x,y));
+            arrayList.add(new Point2D(x,y));
         }
         tree2d.draw();
+        for(Point2D p: arrayList){
+            System.out.println(tree2d.contains(p));
+        }
     }                // unit testing of the methods (optional)
 }
