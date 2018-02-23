@@ -1,9 +1,9 @@
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
+import edu.princeton.cs.algs4.Stack;
 import edu.princeton.cs.algs4.StdDraw;
-import edu.princeton.cs.algs4.StdRandom;
+import edu.princeton.cs.algs4.In;
 
-import java.util.Stack;
 import java.util.TreeSet;
 
 public class PointSET {
@@ -58,18 +58,15 @@ public class PointSET {
     public static void main(String[] args){
         Point2D base = new Point2D(0,0);
         PointSET set = new PointSET();
-        double x;
-        double y;
-        for(int i = 0; i < 20; i ++){
-            x = StdRandom.uniform(1.0,5.0);
-            y = StdRandom.uniform(1.0,5.0);
+        In in  = new In(args[0]);
+        while(!in.isEmpty()){
+            double x = in.readDouble();
+            double y = in.readDouble();
             set.insert(new Point2D(x,y));
         }
         System.out.println(set.isEmpty());
-        StdDraw.setXscale(0,5);
-        StdDraw.setYscale(0,5);
         set.draw();
-        StdDraw.line(base.x(),base.y(),set.nearest(base).x(),set.nearest(base).y());
-        StdDraw.show();
+        System.out.println(set.isEmpty());
+        System.out.println(set.size());
     }                  // unit testing of the methods (optional)
 }

@@ -1,22 +1,26 @@
-import edu.princeton.cs.algs4.*;
+import edu.princeton.cs.algs4.Point2D;
+import edu.princeton.cs.algs4.RectHV;
+import edu.princeton.cs.algs4.Stack;
+import edu.princeton.cs.algs4.StdDraw;
+import edu.princeton.cs.algs4.In;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 
 
 public class KdTree {
-    Node root;
-    Comparator<Point2D> xOrder = Point2D.X_ORDER;
-    Comparator<Point2D> yOrder = Point2D.Y_ORDER;
-    int N;
+    private Node root;
+    private Comparator<Point2D> xOrder = Point2D.X_ORDER;
+    private Comparator<Point2D> yOrder = Point2D.Y_ORDER;
+    private int N;
     private class Node{
         private boolean isVertical;
         private Point2D p;
         private Node lb;  // left-below nodes
         private Node ru;  // right-upper nodes
-        public Node(Point2D p, boolean isVertcal, RectHV rectHV){
+        public Node(Point2D p, boolean isVertical, RectHV rectHV){
             this.p = p;
-            this.isVertical = isVertcal;
+            this.isVertical = isVertical;
             this.rectHV = rectHV;
         }
         private RectHV rectHV;
@@ -65,9 +69,11 @@ public class KdTree {
     }
 
     public  void insert(Point2D p){
+        if(p == null) throw new IllegalArgumentException();
         root = insert(p,root,true, new RectHV(0,0,1,1));
     }              // add the point to the set (if it is not already in the set)
     public           boolean contains(Point2D p){
+        if(p == null) throw new IllegalArgumentException();
         return contains(p,root);
     }            // does the set contain point p?
     private boolean contains(Point2D p, Node curNode){
@@ -116,14 +122,14 @@ public class KdTree {
         draw(curNode.ru);
     }
     public Iterable<Point2D> range(RectHV rectHV){
-        Stack s = new Stack();
-        if (rectHV == null) return null;
+        if (rectHV == null) throw new IllegalArgumentException();
         if (root == null) return null;
+        Stack<Point2D> s = new Stack();
         Point2D point2D = range(rectHV,root,s);
         if(point2D != null) s.push(point2D);
         return s;
     }             // all points that are inside the rectangle (or on the boundary)
-    private Point2D range (RectHV rectHV, Node curNode, Stack<Point2D> s){ // bugged
+    private Point2D range (RectHV rectHV, Node curNode, Stack<Point2D> s){
         if(curNode.lb != null && curNode.lb.rectHV.intersects(rectHV)){
             Point2D point2D = range(rectHV,curNode.lb,s);
             if(point2D != null) s.push(point2D);
@@ -138,10 +144,29 @@ public class KdTree {
         }
         return null;
     }
-//    public           Point2D nearest(Point2D p){
-//
-//    }             // a nearest neighbor in the set to point p; null if the set is empty
+    public Point2D nearest(Point2D p){
+        if(p == null) throw new IllegalArgumentException();
+        if (root == null) return null;
+        if(root == null) return null;
+        double[] nearestDisSquared = {Double.MAX_VALUE};
+        Point2D[] nearestPoint = new Point2D[1];
+        nearest(p,root, nearestDisSquared, nearestPoint);
+        return nearestPoint[0];
+    }             // a nearest neighbor in the set to point p; null if the set is empty
 
+    private void nearest(Point2D p, Node curNode, double[] distance, Point2D[] nearestPoint){
+        if(p.distanceSquaredTo(curNode.p) <= distance[0]){
+            distance[0] = p.distanceSquaredTo(curNode.p);
+            nearestPoint[0] = curNode.p;
+
+        }
+        if( curNode.lb != null && curNode.lb.rectHV.distanceSquaredTo(p) <= distance[0]){
+            nearest(p,curNode.lb,distance,nearestPoint);
+        }
+        if( curNode.ru != null && curNode.ru.rectHV.distanceSquaredTo(p) <= distance[0]){
+            nearest(p,curNode.ru, distance, nearestPoint);
+        }
+    }
     public static void main(String[] args)  {
         KdTree tree2d = new KdTree();
         ArrayList<Point2D> arrayList = new ArrayList<>();
@@ -152,9 +177,13 @@ public class KdTree {
             tree2d.insert(new Point2D(x,y));
             arrayList.add(new Point2D(x,y));
         }
+        System.out.println(tree2d.isEmpty());
         tree2d.draw();
-        for(Point2D p: arrayList){
-            System.out.println(tree2d.contains(p));
-        }
+//        for(Point2D p: arrayList){
+//            System.out.println(tree2d.contains(p));
+//        }
+        Point2D query = new Point2D(0.26,0.74);
+        Point2D nearest = tree2d.nearest(query);
+        StdDraw.line(nearest.x(),nearest.y(),0.26,0.74);
     }                // unit testing of the methods (optional)
 }
