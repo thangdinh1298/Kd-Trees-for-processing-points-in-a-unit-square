@@ -64,9 +64,7 @@ public class PointSET {
             double y = in.readDouble();
             set.insert(new Point2D(x,y));
         }
-        System.out.println(set.isEmpty());
         set.draw();
-        System.out.println(set.isEmpty());
-        System.out.println(set.size());
+
     }                  // unit testing of the methods (optional)
 }

@@ -36,21 +36,21 @@ public class KdTree {
     public               int size(){
         return N;
     }                         // number of points in the set
-    private Node insert(Point2D p, Node curNode, boolean isVertical, RectHV rectHV){
+    private Node insert(Point2D p, Node curNode, boolean isVertical, double xmin, double ymin, double xmax, double ymax){
         if(curNode == null) {
             N++;
-            return new Node(p, isVertical, rectHV);
+            return new Node(p, isVertical, new RectHV(xmin,ymin,xmax,ymax));
         }
         if(p.equals(curNode.p)) return curNode; // if the points are equal, return the node
         if(isVertical){
             int cmp = xOrder.compare(curNode.p,p);
             if(cmp <= 0){
                 curNode.ru = insert(p, curNode.ru, !curNode.isVertical,
-                        new RectHV(curNode.p.x(),rectHV.ymin(),rectHV.xmax(),rectHV.ymax()));
+                        curNode.p.x(),curNode.rectHV.ymin(),curNode.rectHV.xmax(),curNode.rectHV.ymax());
             }
             else if(cmp > 0){
                 curNode.lb = insert(p, curNode.lb, !curNode.isVertical,
-                        new RectHV(rectHV.xmin(),rectHV.ymin(),curNode.p.x(),rectHV.ymax()));
+                        curNode.rectHV.xmin(),curNode.rectHV.ymin(),curNode.p.x(),curNode.rectHV.ymax());
             }
 
         }
@@ -58,11 +58,11 @@ public class KdTree {
             int cmp = yOrder.compare(curNode.p,p);
             if(cmp <= 0){
                 curNode.ru = insert(p, curNode.ru, !curNode.isVertical,
-                        new RectHV(rectHV.xmin(),curNode.p.y(),rectHV.xmax(),rectHV.ymax()));
+                        curNode.rectHV.xmin(),curNode.p.y(),curNode.rectHV.xmax(),curNode.rectHV.ymax());
             }
             else if(cmp > 0){
                 curNode.lb = insert(p, curNode.lb, !curNode.isVertical,
-                        new RectHV(rectHV.xmin(),rectHV.ymin(),rectHV.xmax(),curNode.p.y()));
+                        curNode.rectHV.xmin(),curNode.rectHV.ymin(),curNode.rectHV.xmax(),curNode.p.y());
             }
         }
         return curNode;
@@ -70,7 +70,7 @@ public class KdTree {
 
     public  void insert(Point2D p){
         if(p == null) throw new IllegalArgumentException();
-        root = insert(p,root,true, new RectHV(0,0,1,1));
+        root = insert(p,root,true, 0,0,1,1);
     }              // add the point to the set (if it is not already in the set)
     public           boolean contains(Point2D p){
         if(p == null) throw new IllegalArgumentException();
@@ -158,12 +158,35 @@ public class KdTree {
         if(p.distanceSquaredTo(curNode.p) <= distance[0]){
             distance[0] = p.distanceSquaredTo(curNode.p);
             nearestPoint[0] = curNode.p;
-
         }
-        if( curNode.lb != null && curNode.lb.rectHV.distanceSquaredTo(p) <= distance[0]){
+        if(curNode.lb != null && curNode.ru != null){
+            double disToLb = curNode.lb.rectHV.distanceSquaredTo(p);
+            double disToRu = curNode.ru.rectHV.distanceSquaredTo(p);
+            if(disToLb < disToRu){
+                if( disToLb <= distance[0]){
+                    nearest(p,curNode.lb,distance,nearestPoint);
+                }
+                if(disToRu <= distance[0]){
+                    nearest(p,curNode.ru, distance, nearestPoint);
+                }
+            }
+            else if(disToLb >= disToRu){
+                if(disToRu <= distance[0]){
+                    nearest(p,curNode.ru, distance, nearestPoint);
+                }
+                if( disToLb <= distance[0]){
+                    nearest(p,curNode.lb,distance,nearestPoint);
+                }
+            }
+        }
+        else if( curNode.lb != null){
+            double disToLb = curNode.lb.rectHV.distanceSquaredTo(p);
+            if(disToLb < distance[0])
             nearest(p,curNode.lb,distance,nearestPoint);
         }
-        if( curNode.ru != null && curNode.ru.rectHV.distanceSquaredTo(p) <= distance[0]){
+        else if( curNode.ru != null){
+            double disToRu = curNode.ru.rectHV.distanceSquaredTo(p);
+            if(disToRu < distance[0])
             nearest(p,curNode.ru, distance, nearestPoint);
         }
     }
@@ -177,13 +200,12 @@ public class KdTree {
             tree2d.insert(new Point2D(x,y));
             arrayList.add(new Point2D(x,y));
         }
-        System.out.println(tree2d.isEmpty());
         tree2d.draw();
 //        for(Point2D p: arrayList){
 //            System.out.println(tree2d.contains(p));
 //        }
-        Point2D query = new Point2D(0.26,0.74);
+        Point2D query = new Point2D(0.99,0.99);
         Point2D nearest = tree2d.nearest(query);
-        StdDraw.line(nearest.x(),nearest.y(),0.26,0.74);
+        StdDraw.line(nearest.x(),nearest.y(),query.x(),query.y());
     }                // unit testing of the methods (optional)
 }
